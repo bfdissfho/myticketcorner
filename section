@@ -1,0 +1,92 @@
+// ==UserScript==
+// @name         ticketcorner section
+// @namespace    http://tampermonkey.net/
+// @version      2024-09-13
+// @description  try to take over the world!
+// @author       You
+// @match        https://www.ticketcorner.ch/en/event/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=ticketcorner.ch
+// @grant        none
+// ==/UserScript==
+
+(function() {
+
+    // Declare a variable to hold the interval ID
+    let interval_refresh;
+
+    function checkAndRefresh() {
+        // Select the button using its class names
+        const button = document.querySelector('.btn-stepper-right.js-stepper-more');
+
+        // Check if the button exists
+        if (button) {
+            // Clear the interval if the button is found
+            clearInterval(interval_refresh);
+            console.log('Button found, stopping the interval.');
+            setTimeout(clickButtonMultipleTimes(4), 500);
+        } else {
+            // Refresh the page if the button is not found
+            location.reload();
+        }
+    }
+
+
+    function clickButtonMultipleTimes(times) {
+        // Select the button using the provided selector
+        const button = document.querySelector('.btn-stepper-right.js-stepper-more');
+
+        // Check if the button exists
+        if (button) {
+            for (let i = 0; i < times; i++) {
+                button.click();
+            }
+            setTimeout(clickRandomNormalPrice, 500);
+        } else {
+            console.error('Button not found');
+        }
+    }
+
+
+
+    function clickRandomNormalPrice() {
+        // Select all labels containing "Normal Price"
+        const priceLabels = Array.from(document.querySelectorAll('.ticket-type-title'));
+        // Filter for labels that contain "Normal Price"
+        const normalPriceLabels = priceLabels.filter(label => label.textContent.trim() === 'Normal Price');
+
+        // Check if there are any normal price options available
+        if (normalPriceLabels.length > 0) {
+            // Randomly select one of the normal price labels
+            const random_index = Math.floor(Math.random() * normalPriceLabels.length);
+            console.log(random_index);
+            const randomLabel = normalPriceLabels[random_index];
+
+            // Find the corresponding radio input
+            const radioInput = randomLabel.closest('label').previousElementSibling;
+
+            // Click the radio input
+            if (radioInput) {
+                radioInput.click();
+                setTimeout(clickAddToCartButton, 300);
+            }
+        } else {
+            console.error('No normal price options found');
+        }
+    }
+
+    function clickAddToCartButton() {
+        // Select the button using its class names
+        const button = document.querySelector('.btn-primary.js-fast-booking-action');
+
+        // Check if the button exists
+        if (button) {
+            button.click();
+            console.log('Button clicked.');
+        } else {
+            console.error('Button not found');
+        }
+    }
+
+    interval_refresh = setInterval(checkAndRefresh, 2000);
+
+})();
