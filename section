@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ticketcorner section
 // @namespace    http://tampermonkey.net/
-// @version      1
+// @version      2
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.ticketcorner.ch/en/event/*
@@ -12,6 +12,55 @@
 // ==/UserScript==
 
 (function() {
+
+function clickRandomNormalPriceAndAddToCart() {
+    // Select all "Normal Price" elements
+    const priceElements = Array.from(document.querySelectorAll('.ticket-type-title'));
+
+    // Filter for those that are available
+    const normalPriceElements = priceElements.filter(element => {
+        const wrapper = element.closest('.clearfix.ticket-type-item');
+        const isUnavailable = wrapper.querySelector('.ticket-type-unavailable-sec');
+        return element.textContent.trim() === 'Normal Price' && !isUnavailable;
+    });
+
+    // Check if any normal price options are available
+    if (normalPriceElements.length > 0) {
+        // Randomly select one of the normal price elements
+        const randomElement = normalPriceElements[Math.floor(Math.random() * normalPriceElements.length)];
+
+        // Find the corresponding increase button using the full class name
+        const increaseButton = randomElement.closest('.clearfix.ticket-type-item').querySelector('.btn.btn-alternative.btn-sm.btn-stepper-right.js-tracking.js-track.js-stepper-more.js-focus-trigger');
+
+        // Log the button for debugging
+        console.log('Found increase button:', increaseButton);
+
+        // Click the increase button 8 times if it exists and is enabled
+        if (increaseButton && !increaseButton.disabled) {
+            for (let i = 0; i < 8; i++) {
+                increaseButton.click();
+                console.log(`Clicked increase button ${i + 1} time(s).`);
+            }
+
+            // Select the "Add to shopping cart" button
+            const addToCartButton = document.querySelector('.btn.btn-primary.btn-lg.btn-block.js-stepper-action.js-cat-check-trigger.js-cc-submit-btn:not(.disabled)');
+            console.log(addToCartButton);
+
+            // Check if the add to cart button exists and is enabled
+            if (addToCartButton) {
+                addToCartButton.click();
+                console.log('Clicked on the Add to shopping cart button.');
+            } else {
+                console.error('Add to shopping cart button not found or is disabled.');
+            }
+        } else {
+            console.error('Increase button is not clickable or does not exist.');
+        }
+    } else {
+        console.error('No available normal price options found.');
+    }
+}
+
 
     // Declare a variable to hold the interval ID
     let interval_refresh;
@@ -25,7 +74,7 @@
             // Clear the interval if the button is found
             clearInterval(interval_refresh);
             console.log('Button found, stopping the interval.');
-            setTimeout(clickButtonMultipleTimes(4), 500);
+            setTimeout(clickRandomNormalPriceAndAddToCart, 500);
         } else {
             // Refresh the page if the button is not found
             location.reload();
@@ -33,62 +82,21 @@
     }
 
 
-    function clickButtonMultipleTimes(times) {
-        // Select the button using the provided selector
-        const button = document.querySelector('.btn-stepper-right.js-stepper-more');
+    function clickBackToTicketSelection() {
+        // Select the button using its class name
+        const backButton = document.querySelector('.btn.btn-secondary.btn-sm.btn-block.margin-top-l.js-cc-layer-back-to-choice');
 
         // Check if the button exists
-        if (button) {
-            for (let i = 0; i < times; i++) {
-                button.click();
-            }
-            setTimeout(clickRandomNormalPrice, 500);
+        if (backButton) {
+            backButton.click();
+            console.log('Clicked on the Back to ticket selection button.');
         } else {
-            console.error('Button not found');
-        }
-    }
-
-
-
-    function clickRandomNormalPrice() {
-        // Select all labels containing "Normal Price"
-        const priceLabels = Array.from(document.querySelectorAll('.ticket-type-title'));
-        // Filter for labels that contain "Normal Price"
-        const normalPriceLabels = priceLabels.filter(label => label.textContent.trim() === 'Normal Price');
-
-        // Check if there are any normal price options available
-        if (normalPriceLabels.length > 0) {
-            // Randomly select one of the normal price labels
-            const random_index = Math.floor(Math.random() * normalPriceLabels.length);
-            console.log(random_index);
-            const randomLabel = normalPriceLabels[random_index];
-
-            // Find the corresponding radio input
-            const radioInput = randomLabel.closest('label').previousElementSibling;
-
-            // Click the radio input
-            if (radioInput) {
-                radioInput.click();
-                setTimeout(clickAddToCartButton, 300);
-            }
-        } else {
-            console.error('No normal price options found');
-        }
-    }
-
-    function clickAddToCartButton() {
-        // Select the button using its class names
-        const button = document.querySelector('.btn-primary.js-fast-booking-action');
-
-        // Check if the button exists
-        if (button) {
-            button.click();
-            console.log('Button clicked.');
-        } else {
-            console.error('Button not found');
+            console.error('Back to ticket selection button not found.');
         }
     }
 
     interval_refresh = setInterval(checkAndRefresh, 2000);
+    setTimeout(clickBackToTicketSelection, 20000)
+
 
 })();
